@@ -1,0 +1,95 @@
+{
+  "_comment": "Frozen capture of the module-03 telemetry service. The live service drifts on every call (sin(time.time()) + jitter), which makes it unusable as an evaluation fixture. This snapshot pins it.",
+  "_captured_from": "03-agent-example/metrics_service.py",
+  "throttle_c": 85,
+  "nodes": {
+    "nid01": {
+      "node": "nid01",
+      "partition": "normal",
+      "state": "idle",
+      "temp_c": 39.4,
+      "power_w": 173,
+      "gpu_util_pct": 0,
+      "fan_rpm": 3173,
+      "throttling": false,
+      "sampled_at": "2026-09-06 12:00:00"
+    },
+    "nid02": {
+      "node": "nid02",
+      "partition": "gpu",
+      "state": "alloc",
+      "temp_c": 91.8,
+      "power_w": 612,
+      "gpu_util_pct": 98,
+      "fan_rpm": 5531,
+      "throttling": true,
+      "sampled_at": "2026-09-06 12:00:00"
+    },
+    "nid03": {
+      "node": "nid03",
+      "partition": "gpu",
+      "state": "alloc",
+      "temp_c": 64.7,
+      "power_w": 501,
+      "gpu_util_pct": 94,
+      "fan_rpm": 4312,
+      "throttling": false,
+      "sampled_at": "2026-09-06 12:00:00"
+    },
+    "nid04": {
+      "node": "nid04",
+      "partition": "gpu",
+      "state": "alloc",
+      "temp_c": 62.5,
+      "power_w": 488,
+      "gpu_util_pct": 90,
+      "fan_rpm": 4212,
+      "throttling": false,
+      "sampled_at": "2026-09-06 12:00:00"
+    },
+    "nid05": {
+      "node": "nid05",
+      "partition": "gpu",
+      "state": "alloc",
+      "temp_c": 59.1,
+      "power_w": 454,
+      "gpu_util_pct": 84,
+      "fan_rpm": 4060,
+      "throttling": false,
+      "sampled_at": "2026-09-06 12:00:00"
+    },
+    "nid06": {
+      "node": "nid06",
+      "partition": "normal",
+      "state": "alloc",
+      "temp_c": 49.6,
+      "power_w": 297,
+      "gpu_util_pct": 9,
+      "fan_rpm": 3632,
+      "throttling": false,
+      "sampled_at": "2026-09-06 12:00:00"
+    },
+    "nid07": {
+      "node": "nid07",
+      "partition": "normal",
+      "state": "alloc",
+      "temp_c": 51.2,
+      "power_w": 311,
+      "gpu_util_pct": 12,
+      "fan_rpm": 3704,
+      "throttling": false,
+      "sampled_at": "2026-09-06 12:00:00"
+    },
+    "nid08": {
+      "node": "nid08",
+      "partition": "prepost",
+      "state": "drained",
+      "temp_c": 32.4,
+      "power_w": 107,
+      "gpu_util_pct": 0,
+      "fan_rpm": 2858,
+      "throttling": false,
+      "sampled_at": "2026-09-06 12:00:00"
+    }
+  }
+}

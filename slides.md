@@ -140,7 +140,7 @@ style: |
 **01** — an example of local sandboxing
 **02** — development workflows
 **03** — writing your own agent, in Python
-**04** — AutoAlps
+***99** — AutoAlps*
 
 <!--
 Shared hour, several presenters — keep it tight. 00 is the only part that needs

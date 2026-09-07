@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "a": "A-kimi-full",
+    "b": "B-glm-full",
+    "reps": 1,
+    "n_tasks": 1,
+    "when": "2026-09-07T14:54:50",
+    "fixture": "telemetry.json",
+    "judges": [
+      "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16",
+      "swiss-ai/Apertus-v1.5-70B"
+    ],
+    "stub": false,
+    "judge_tokens": {
+      "sent": 12524,
+      "received": 3575
+    }
+  },
+  "runs": [
+    {
+      "setup": "A-kimi-full",
+      "task": "alloc-headroom",
+      "rep": 0,
+      "model": "moonshotai/Kimi-K2.7-Code",
+      "answer": "The project closest to exhausting its allocation is **s1250 \u2014 \u201cSwiss AI Pretraining.\u201d** It has used **2,329.09 of its 3,000 node-hour allocation**, or about **77.6%** (0.776).\n\n*Source: Slurm accounting database (`run_sql`).*",
+      "turns": 2,
+      "calls": [
+        {
+          "turn": 1,
+          "name": "run_sql",
+          "args": {
+            "query": "SELECT p.project_id, p.name, p.allocation_node_hours, COALESCE(SUM(j.node_hours), 0) AS used_node_hours, COALESCE(SUM(j.node_hours), 0) / p.allocation_node_hours AS fraction_used FROM projects p LEFT JOIN jobs j ON p.project_id = j.project_id GROUP BY p.project_id ORDER BY fraction_used DESC LIMIT 1"
+          },
+          "result": "[{\"project_id\": \"s1250\", \"name\": \"Swiss AI Pretraining\", \"allocation_node_hours\": 3000.0, \"used_node_hours\": 2329.09, \"fraction_used\": 0.7763633333333334}]",
+          "result_chars": 155,
+          "guard_refused": false
+        }
+      ],
+      "tokens": {
+        "sent": 1611,
+        "received": 409,
+        "cached": 640
+      },
+      "wall_s": 6.75,
+      "stopped": "answered",
+      "error": "",
+      "check": {
+        "passed": true,
+        "failures": [],
+        "hard_fail": []
+      },
+      "judge": {
+        "votes": [
+          {
+            "judge": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16",
+            "scores": {
+              "goal_attainment": 3,
+              "trajectory_quality": 3,
+              "tool_use": 3
+            },
+            "mean": 3,
+            "findings": [],
+            "reasoning": "1. Factual claims in final answer: (a) The project closest to exhausting its allocation is s1250 \u2014 'Swiss AI Pretraining'. Supported by tool result showing project_id 's1250' and name 'Swiss AI Pretraining' with highest fraction_used. (b) It has used 2,329.09 of its 3,000 node-hour allocation. Supported by used_node_hours 2329.09 and allocation_node_hours 3000.0. (c) This corresponds to about 77.6% (0.776) fraction used. Supported by fraction_used 0.7763633333333334. All claims are directly traceable to the tool result.\n2. Tool calls: Only one call to run_sql with the query shown. The call was necessary and its arguments were correct (appropriate SQL to compute usage and fraction, ordering descending, limit 1).\n3. Tool errors or empty results: None; the query returned a row.\n4. Scores: Goal attainment 3 (fully answered with all figures supported). Trajectory quality 3 (direct, necessary step). Tool use 3 (right tool, correct arguments). No errors or violations, so findings list is empty.",
+            "parsed": true,
+            "raw": ""
+          },
+          {
+            "judge": "swiss-ai/Apertus-v1.5-70B",
+            "scores": {
+              "goal_attainment": 3,
+              "trajectory_quality": 3,
+              "tool_use": 3
+            },
+            "mean": 3,
+            "findings": [],
+            "reasoning": "1. Factual claims in final answer:\n   - Project ID: s1250 \u2014 supported by tool result\n   - Project name: \"Swiss AI Pretraining\" \u2014 supported by tool result\n   - Allocation node-hours: 3000.0 \u2014 supported by tool result\n   - Used node-hours: 2329.09 \u2014 supported by tool result\n   - Fraction used: 0.776 (\u224877.6%) \u2014 supported by tool result\n\n2. Tool calls:\n   - Turn 1: run_sql with a single, correct query that joins projects and jobs, groups by project, calculates used hours and fraction used, and orders by fraction_used descending to get the closest-to-exhausted project. Arguments are correct and necessary for the question.\n   - No other tool calls were needed.\n\n3. Tool errors or empty results:\n   - No errors reported in the trajectory; the tool returned a single row with all required fields.\n\n4. Scoring follows from the above: single direct call, no errors, all claims sourced.\n",
+            "parsed": true,
+            "raw": ""
+          }
+        ],
+        "mean": 3,
+        "dims": {
+          "goal_attainment": 3,
+          "trajectory_quality": 3,
+          "tool_use": 3
+        },
+        "spread": 0,
+        "findings": []
+      }
+    },
+    {
+      "setup": "B-glm-full",
+      "task": "alloc-headroom",
+      "rep": 0,
+      "model": "zai-org/GLM-5.2",
+      "answer": "The project closest to exhausting its allocation is **s1250 \u2013 \"Swiss AI Pretraining\"** (PI: Prof. N. Baumann). It has consumed **2,329.09 node-hours** out of its **3,000 node-hour** quarterly allocation, i.e. **\u2248 77.6 %** burned.\n\nThe next closest, for context, is s1023 (\"Climate Downscaling CH2100\") at only \u2248 36.4 %, so s1250 is well ahead of the rest.\n\n*Source: Slurm accounting database \u2014 `projects` table for the allocation, `jobs` table (sum of `node_hours`) for usage.*",
+      "turns": 2,
+      "calls": [
+        {
+          "turn": 1,
+          "name": "run_sql",
+          "args": {
+            "query": "\nSELECT p.project_id, p.name, p.pi,\n       p.allocation_node_hours AS allocated,\n       COALESCE(SUM(j.node_hours), 0) AS used,\n       COALESCE(SUM(j.node_hours), 0) / p.allocation_node_hours AS fraction_used\nFROM projects p\nLEFT JOIN jobs j ON j.project_id = p.project_id\nGROUP BY p.project_id, p.name, p.pi, p.allocation_node_hours\nORDER BY fraction_used DESC\nLIMIT 5\n"
+          },
+          "result": "[{\"project_id\": \"s1250\", \"name\": \"Swiss AI Pretraining\", \"pi\": \"Prof. N. Baumann\", \"allocated\": 3000.0, \"used\": 2329.09, \"fraction_used\": 0.7763633333333334}, {\"project_id\": \"s1023\", \"name\": \"Climate Downscaling CH2100\", \"pi\": \"Prof. H. Bernet\", \"allocated\": 4000.0, \"used\": 1457.41, \"fraction_used\": 0.3643525}, {\"project_id\": \"s1101\", \"name\": \"Lattice QCD Production\", \"pi\": \"Prof. K. Vogel\", \"allocated\": 6000.0, \"used\": 1771.09, \"fraction_used\": 0.2951816666666667}, {\"project_id\": \"s1187\", \"name\": \"Genome Assembly Pipeline\", \"pi\": \"Dr. S. Amrein\", \"allocated\": 1200.0, \"used\": 203.72, \"fraction_used\": 0.16976666666666668}, {\"project_id\": \"s1044\", \"name\": \"Cardiac Flow Simulation\", \"pi\": \"Dr. A. Lombardi\", \"allocated\": 1500.0, \"used\": 180.6, \"fraction_used\": 0.1204}]",
+          "result_chars": 775,
+          "guard_refused": false
+        }
+      ],
+      "tokens": {
+        "sent": 2165,
+        "received": 379,
+        "cached": 0
+      },
+      "wall_s": 8.71,
+      "stopped": "answered",
+      "error": "",
+      "check": {
+        "passed": true,
+        "failures": [],
+        "hard_fail": []
+      },
+      "judge": {
+        "votes": [
+          {
+            "judge": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16",
+            "scores": {
+              "goal_attainment": 3,
+              "trajectory_quality": 3,
+              "tool_use": 3
+            },
+            "mean": 3,
+            "findings": [],
+            "reasoning": "1. Factual claims in final answer:\n   - Project closest to exhausting allocation is s1250 \u2013 \"Swiss AI Pretraining\" (PI: Prof. N. Baumann). Supported by tool result row for project_id s1250.\n   - It has consumed 2,329.09 node-hours out of its 3,000 node-hour quarterly allocation. Supported by 'used' = 2329.09 and 'allocated' = 3000.0 in that row.\n   - i.e. \u2248 77.6% burned. Supported by 'fraction_used' = 0.7763633333333334 (~77.6%).\n   - Additional context about s1023 being next closest at \u224836.4% is also supported by the second row of the tool result.\n   All claims are traceable to the tool output.\n\n2. Tool calls:\n   - Turn 1: run_sql with a query that selects project details, sums node_hours, computes fraction_used, orders descending, and limits 5. The call was necessary and its arguments were correct.\n\n3. Tool errors or empty results:\n   - None; the query returned rows successfully.\n\n4. Scores based on the above:\n   - Goal attainment: 3 (fully answers, every figure supported).\n   - Trajectory quality: 3 (direct, necessary steps).\n   - Tool use: 3 (right tool, correct arguments, no errors).\n   - Findings: none.",
+            "parsed": true,
+            "raw": ""
+          },
+          {
+            "judge": "swiss-ai/Apertus-v1.5-70B",
+            "scores": {
+              "goal_attainment": 3,
+              "trajectory_quality": 3,
+              "tool_use": 3
+            },
+            "mean": 3,
+            "findings": [],
+            "reasoning": "1. Factual claims and sources:\n   - Project closest to exhausting allocation: s1250 \u2013 \"Swiss AI Pretraining\" \u2192 supported by LIMIT 5 ordered by fraction_used DESC \u2192 first row.\n   - PI: Prof. N. Baumann \u2192 from same row.\n   - Allocated: 3000.0 \u2192 from same row.\n   - Used: 2329.09 \u2192 from same row.\n   - Fraction burned: \u2248 77.6 % \u2192 derived from fraction_used column (0.7763633333333334).\n   - Next closest comparison: s1023 at \u2248 36.4 % \u2192 supported by second row.\n   - All figures trace directly to the tool result.\n\n2. Tool calls:\n   - Turn 1: CALL run_sql with a single query that:\n     \u2022 joins projects and jobs on project_id\n     \u2022 groups by project to aggregate usage\n     \u2022 calculates used and fraction_used\n     \u2022 orders by fraction_used DESC and limits to top 5\n     \u2022 arguments are correct and necessary for the question\n   - No other tool calls were made; the single call was sufficient.\n\n3. Tool errors / empty results:\n   - No errors reported in the trajectory; the tool returned a valid result set.\n   - The agent did not retry or adapt because no error occurred.\n\n4. Scoring summary:\n   - Goal attainment: every claim is supported by the tool result \u2192 3\n   - Trajectory quality: one necessary tool call, no exploration needed \u2192 3\n   - Tool use: correct tool, correct arguments, no errors \u2192 3",
+            "parsed": true,
+            "raw": ""
+          }
+        ],
+        "mean": 3,
+        "dims": {
+          "goal_attainment": 3,
+          "trajectory_quality": 3,
+          "tool_use": 3
+        },
+        "spread": 0,
+        "findings": []
+      }
+    }
+  ]
+}

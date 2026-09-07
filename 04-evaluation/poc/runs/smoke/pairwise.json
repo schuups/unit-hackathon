@@ -1,0 +1,32 @@
+{
+  "wins": {
+    "A-kimi-full": 1,
+    "B-glm-full": 0
+  },
+  "ties": 0,
+  "n": 1,
+  "detail": [
+    {
+      "task": "alloc-headroom",
+      "winner": "A-kimi-full",
+      "votes": [
+        {
+          "judge": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16",
+          "winner": "A-kimi-full",
+          "a_shown_first": true,
+          "margin": "slight",
+          "reasoning": "Both trajectories correctly answer the question with fully sourced figures, earning equal scores for goal attainment and tool use. Trajectory 1 uses a single SQL query with LIMIT 1, directly returning only the top project, while Trajectory 2 returns the top five projects and then selects the first, adding unnecessary data. This makes Trajectory 1's path slightly more efficient and direct, giving it a modest edge in trajectory quality.",
+          "parsed": true
+        },
+        {
+          "judge": "swiss-ai/Apertus-v1.5-70B",
+          "winner": "A-kimi-full",
+          "a_shown_first": true,
+          "margin": "slight",
+          "reasoning": "Trajectory 1 correctly identifies the project closest to exhausting its allocation and provides the required fraction, sourcing it from `run_sql`. It is concise and directly answers the question. Trajectory 2 also correctly identifies the project and fraction but includes additional context (e.g., listing the next closest projects and PI names) that is not requested by the question. While this extra information is accurate, it introduces unnecessary detail and does not improve goal attainment. Both trajectories use the correct tool (`run_sql`) and do not contain errors. However, Trajectory 1 is more efficient and strictly adheres to the question's requirements without extraneous information, making it superior in trajectory quality. No catastrophic, critical, or functional errors are present in either trajectory.",
+          "parsed": true
+        }
+      ]
+    }
+  ]
+}

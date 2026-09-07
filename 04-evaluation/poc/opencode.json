@@ -1,0 +1,58 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": false,
+  "share": "disabled",
+  "permission": {
+    "edit": "deny",
+    "bash": "deny",
+    "webfetch": "deny"
+  },
+  "provider": {
+    "cscs": {
+      "npm": "@ai-sdk/anthropic",
+      "name": "CSCS Inference",
+      "options": {
+        "baseURL": "https://api.inference.cscs.ch/v1",
+        "systemMessageMode": "system",
+        "apiKey": "{env:CSCS_INFERENCE_API_KEY}"
+      },
+      "models": {
+        "moonshotai/Kimi-K2.7-Code": {
+          "name": "Kimi K2.7-Code",
+          "limit": {
+            "context": 262144,
+            "output": 16384
+          }
+        },
+        "zai-org/GLM-5.2": {
+          "name": "GLM-5.2"
+        }
+      }
+    }
+  },
+  "mcp": {
+    "servicedesk": {
+      "type": "local",
+      "command": [
+        "python3",
+        "/Users/user/git/unit-hackathon/04-evaluation/poc/mcp_server.py"
+      ],
+      "enabled": true
+    }
+  },
+  "tools": {
+    "bash": false,
+    "edit": false,
+    "write": false,
+    "read": false,
+    "grep": false,
+    "glob": false,
+    "list": false,
+    "patch": false,
+    "todowrite": false,
+    "todoread": false,
+    "webfetch": false,
+    "task": false,
+    "servicedesk*": true
+  }
+}

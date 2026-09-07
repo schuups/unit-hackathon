@@ -1,0 +1,286 @@
+{
+  "meta": {
+    "setups": [
+      "oc-kimi",
+      "oc-glm",
+      "cc-kimi",
+      "cc-glm"
+    ],
+    "reps": 1,
+    "n_tasks": 1,
+    "when": "2026-09-07T15:23:08",
+    "fixture": "telemetry.json",
+    "judges": [],
+    "stub": false
+  },
+  "runs": [
+    {
+      "setup": "oc-kimi",
+      "task": "job-4831",
+      "rep": 0,
+      "model": "moonshotai/Kimi-K2.7-Code",
+      "answer": "Job **4831** ended with state **TIMEOUT**, not a crash or node failure. It ran for exactly 24 hours on `nid[02-05]` in the `gpu` partition before hitting the walltime limit.\n\n**What happened**\n- The job started at `2026-09-05 08:16:00` and ended at `2026-09-06 08:16:00`, consuming 96 node-hours.\n- Exit code is `0`, so the job itself did not fail \u2014 Slurm terminated it because it reached its requested/allocated time limit.\n\n**What you should do**\n1. **Resubmit with a longer walltime** if the workload genuinely needs more than 24 hours.\n2. **Add checkpointing** so future long runs can restart from the last saved state instead of starting over.\n3. **Be aware of nid02**: it is currently thermally throttling at 91.8 \u00b0C. That may have slowed the job down, contributing to it not finishing in time. If the slowdown was significant, ask the user whether they want a refund request opened for the affected node hours on nid02.\n\nWould you like me to check the user's project allocation or look up the refund policy?",
+      "turns": 2,
+      "calls": [
+        {
+          "turn": 1,
+          "name": "run_sql",
+          "args": {
+            "query": "SELECT * FROM jobs WHERE job_id = 4831;"
+          },
+          "result": "[{\"job_id\": 4831, \"username\": \"mrossi\", \"project_id\": \"s1023\", \"partition\": \"gpu\", \"nodes\": 4, \"node_list\": \"nid[02-05]\", \"state\": \"TIMEOUT\", \"exit_code\": 0, \"submit_time\": \"2026-09-05 08:12:00\", \"start_time\": \"2026-09-05 08:16:00\", \"end_time\": \"2026-09-06 08:16:00\", \"node_hours\": 96.0}]",
+          "result_chars": 288,
+          "guard_refused": false
+        },
+        {
+          "turn": 1,
+          "name": "list_alerts",
+          "args": {},
+          "result": "[\n  {\n    \"node\": \"nid02\",\n    \"severity\": \"warning\",\n    \"alert\": \"thermal_throttling\",\n    \"detail\": \"91.8 C is above the 85 C throttle point\",\n    \"since\": \"2026-09-04 02:10:00\"\n  },\n  {\n    \"node\": \"nid08\",\n    \"severity\": \"info\",\n    \"alert\": \"node_drained\",\n    \"detail\": \"scheduled hardware maintenance\",\n    \"since\": \"2026-09-05 06:00:00\"\n  }\n]",
+          "result_chars": 352,
+          "guard_refused": false
+        },
+        {
+          "turn": 1,
+          "name": "get_node_metrics",
+          "args": {
+            "node": "nid02"
+          },
+          "result": "{\n  \"node\": \"nid02\",\n  \"partition\": \"gpu\",\n  \"state\": \"alloc\",\n  \"temp_c\": 91.8,\n  \"power_w\": 612,\n  \"gpu_util_pct\": 98,\n  \"fan_rpm\": 5531,\n  \"throttling\": true,\n  \"sampled_at\": \"2026-09-06 12:00:00\"\n}",
+          "result_chars": 201,
+          "guard_refused": false
+        }
+      ],
+      "tokens": {
+        "sent": 0,
+        "received": 420,
+        "cached": 0
+      },
+      "wall_s": 10.54,
+      "stopped": "answered",
+      "error": "",
+      "check": {
+        "passed": false,
+        "failures": [
+          "never called search_docs"
+        ],
+        "hard_fail": []
+      }
+    },
+    {
+      "setup": "oc-glm",
+      "task": "job-4831",
+      "rep": 0,
+      "model": "zai-org/GLM-5.2",
+      "answer": "## What happened\n\nJob **4831** (user `mrossi`, project `s1023`, 4 nodes `nid[02-05]`, gpu partition) ran for its full 24-hour walltime and ended in **TIMEOUT** with exit code 0 \u2014 meaning it didn't crash, it just didn't finish in time.\n\n**Root cause: nid02 is thermally throttling.** Live telemetry shows:\n\n| Metric | Value |\n|---|---|\n| Temperature | 91.8 \u00b0C (threshold: 85 \u00b0C) |\n| Throttling | **yes** |\n| GPU util | 98 % (clocked-down) |\n| Power | 612 W |\n| Fan | 5531 rpm |\n\nThe thermal-throttling alert has been firing **since 2026-09-04 02:10** \u2014 the day before the job started. Per the runbook, a throttled GPU loses 30\u201350 % throughput, which is consistent with a 24 h job timing out instead of completing.\n\n## What to do\n\n1. **Drain nid02** so no new work lands on it:\n   ```\n   scontrol update NodeName=nid02 State=DRAIN Reason=\"thermal\"\n   ```\n2. **Raise a hardware ticket** with the facilities team \u2014 include the temperature history (91.8 \u00b0C, throttling since 2026-09-04) and job id 4831.\n3. **Tell `mrossi` to resubmit** \u2014 the job can run normally on other gpu nodes.\n4. **Request a refund** of the 96 node-hours: open a Service Desk ticket quoting job **4831** and node **nid02**. Per the fair-share policy, time lost to a confirmed hardware fault (thermal throttling) is credited back to the project.",
+      "turns": 4,
+      "calls": [
+        {
+          "turn": 1,
+          "name": "run_sql",
+          "args": {
+            "query": "SELECT * FROM jobs WHERE job_id = 4831"
+          },
+          "result": "[{\"job_id\": 4831, \"username\": \"mrossi\", \"project_id\": \"s1023\", \"partition\": \"gpu\", \"nodes\": 4, \"node_list\": \"nid[02-05]\", \"state\": \"TIMEOUT\", \"exit_code\": 0, \"submit_time\": \"2026-09-05 08:12:00\", \"start_time\": \"2026-09-05 08:16:00\", \"end_time\": \"2026-09-06 08:16:00\", \"node_hours\": 96.0}]",
+          "result_chars": 288,
+          "guard_refused": false
+        },
+        {
+          "turn": 1,
+          "name": "get_node_metrics",
+          "args": {
+            "node": "nid02"
+          },
+          "result": "{\n  \"node\": \"nid02\",\n  \"partition\": \"gpu\",\n  \"state\": \"alloc\",\n  \"temp_c\": 91.8,\n  \"power_w\": 612,\n  \"gpu_util_pct\": 98,\n  \"fan_rpm\": 5531,\n  \"throttling\": true,\n  \"sampled_at\": \"2026-09-06 12:00:00\"\n}",
+          "result_chars": 201,
+          "guard_refused": false
+        },
+        {
+          "turn": 1,
+          "name": "list_alerts",
+          "args": {},
+          "result": "[\n  {\n    \"node\": \"nid02\",\n    \"severity\": \"warning\",\n    \"alert\": \"thermal_throttling\",\n    \"detail\": \"91.8 C is above the 85 C throttle point\",\n    \"since\": \"2026-09-04 02:10:00\"\n  },\n  {\n    \"node\": \"nid08\",\n    \"severity\": \"info\",\n    \"alert\": \"node_drained\",\n    \"detail\": \"scheduled hardware maintenance\",\n    \"since\": \"2026-09-05 06:00:00\"\n  }\n]",
+          "result_chars": 352,
+          "guard_refused": false
+        },
+        {
+          "turn": 1,
+          "name": "search_docs",
+          "args": {
+            "keyword": "node failure"
+          },
+          "result": "Nothing matches 'node failure'. Available: ['policy-fair-share.md', 'policy-maintenance-windows.md', 'runbook-out-of-memory.md', 'runbook-thermal-throttling.md']",
+          "result_chars": 161,
+          "guard_refused": false
+        },
+        {
+          "turn": 2,
+          "name": "search_docs",
+          "args": {
+            "keyword": "thermal throttling"
+          },
+          "result": "### runbook-thermal-throttling.md\n# Runbook: node running hot / thermal throttling\n\n**Symptom.** Jobs on a node take far longer than the same job took last week,\nand often hit their walltime and end in `TIMEOUT` rather than failing outright.\nUsers report \"the cluster is slow\" without an error message.\n\n**Cause.** Above **85 C** the GPUs clock down to protect themselves. Throughput\ndrops by 30-50% but nothing crashes, so nothing shows up in the job's own logs.\nThe usual reason is a blocked air intake, a failed fan, or a rack-level cooling\nfault affecting one or two nodes.\n\n**Diagnosis.**\n\n1. Pull the live telemetry for the node: temperature, power draw, `throttling`.\n2. Check the accounting database for jobs that landed on that node in the last\n   few days. A cluster of `TIMEOUT` states on one node, while the same users'\n   jobs complete normally elsewhere, confirms it.\n\n**Action.**\n\n- Drain the node so no new work lands on it: `scontrol update NodeName=<node> State=DRAIN Reason=\"thermal\"`.\n- Raise a hardware ticket with the facilities team; include the temperature\n  history and the affected job ids.\n- Tell the affected users to resubmit. Time lost to a throttled node is\n  refunded against the project allocation -- see the fair-share policy.\n",
+          "result_chars": 1261,
+          "guard_refused": false
+        },
+        {
+          "turn": 3,
+          "name": "search_docs",
+          "args": {
+            "keyword": "refund"
+          },
+          "result": "### policy-fair-share.md\n# Policy: allocations, fair share and refunds\n\nEach project is granted an allocation in **node hours** for the quarter. Usage\nis charged as `nodes x elapsed hours`, whatever the job's exit state -- a job\nthat fails after twenty hours still costs twenty hours.\n\n**Thresholds.**\n\n- At **80%** of the allocation the PI is notified automatically.\n- At **100%** new jobs are still accepted but drop to the lowest priority tier,\n  and will only start when the machine is otherwise idle.\n- Extensions are requested through the Service Desk and decided by the\n  allocation committee, which meets fortnightly.\n\n**Refunds.** Node hours lost to a confirmed hardware fault -- a thermally\nthrottled node, a failed DIMM, a fabric outage -- are credited back to the\nproject. Open a Service Desk ticket quoting the job ids and the node names.\nTime lost to a user's own error is not refunded.\n\n\n### runbook-thermal-throttling.md\n# Runbook: node running hot / thermal throttling\n\n**Symptom.** Jobs on a node take far longer than the same job took last week,\nand often hit their walltime and end in `TIMEOUT` rather than failing outright.\nUsers report \"the cluster is slow\" without an error message.\n\n**Cause.** Above **85 C** the GPUs clock down to protect themselves. Throughput\ndrops by 30-50% but nothing crashes, so nothing shows up in the job's own logs.\nThe usual reason is a blocked air intake, a failed fan, or a rack-level cooling\nfault affecting one or two nodes.\n\n**Diagnosis.**\n\n1. Pull the live telemetry for the node: temperature, power draw, `throttling`.\n2. Check the accounting database for jobs that landed on that node in the last\n   few days. A cluster of `TIMEOUT` states on one node, while the same users'\n   jobs complete normally elsewhere, confirms it.\n\n**Action.**\n\n- Drain the node so no new work lands on it: `scontrol update NodeName=<node> State=DRAIN Reason=\"thermal\"`.\n- Raise a hardware ticket with the facilities team; include the temperature\n  history and the affected job ids.\n- Tell the affected users to resubmit. Time lost to a throttled node is\n  refunded against the project allocation -- see the fair-share policy.\n",
+          "result_chars": 2164,
+          "guard_refused": false
+        }
+      ],
+      "tokens": {
+        "sent": 0,
+        "received": 942,
+        "cached": 0
+      },
+      "wall_s": 34.78,
+      "stopped": "answered",
+      "error": "",
+      "check": {
+        "passed": true,
+        "failures": [],
+        "hard_fail": []
+      }
+    },
+    {
+      "setup": "cc-kimi",
+      "task": "job-4831",
+      "rep": 0,
+      "model": "moonshotai/Kimi-K2.7-Code",
+      "answer": "Job **4831** hit its walltime and ended in **`TIMEOUT`** (exit code 0). It ran for exactly 24 hours on 4 GPU nodes (`nid[02-05]`) for user `mrossi` / project `s1023`.\n\nThe root cause is **thermal throttling on `nid02`**: the node is at **91.8 \u00b0C**, above the 85 \u00b0C throttle point, and has been throttling since **2026-09-04 02:10**. Throttled GPUs slow down 30\u201350 % but don\u2019t crash, so tightly coupled multi-node jobs like this one run slower and hit their walltime rather than failing with an application error.\n\n### What to do\n\n1. **Drain the affected node(s)** so no new work lands there:\n   ```bash\n   scontrol update NodeName=nid02 State=DRAIN Reason=\"thermal throttling\"\n   ```\n   Since the job spanned `nid[02-05]`, also check `nid03`\u2013`nid05` for similar temperatures before draining just `nid02`.\n\n2. **Raise a hardware/facilities ticket** for `nid02`, including the temperature history and affected job ID 4831.\n\n3. **Notify `mrossi`** to resubmit. Per the fair-share policy, time lost to a throttled node should be refunded against project `s1023`.\n\nWould you like me to pull the live metrics for `nid03`\u2013`nid05` as well to confirm whether the whole range needs draining?",
+      "turns": 5,
+      "calls": [
+        {
+          "turn": 2,
+          "name": "run_sql",
+          "args": {
+            "query": "SELECT * FROM jobs WHERE job_id = 4831"
+          },
+          "result": "[{\"job_id\": 4831, \"username\": \"mrossi\", \"project_id\": \"s1023\", \"partition\": \"gpu\", \"nodes\": 4, \"node_list\": \"nid[02-05]\", \"state\": \"TIMEOUT\", \"exit_code\": 0, \"submit_time\": \"2026-09-05 08:12:00\", \"start_time\": \"2026-09-05 08:16:00\", \"end_time\": \"2026-09-06 08:16:00\", \"node_hours\": 96.0}]",
+          "result_chars": 288,
+          "guard_refused": false
+        },
+        {
+          "turn": 3,
+          "name": "list_alerts",
+          "args": {},
+          "result": "[\n  {\n    \"node\": \"nid02\",\n    \"severity\": \"warning\",\n    \"alert\": \"thermal_throttling\",\n    \"detail\": \"91.8 C is above the 85 C throttle point\",\n    \"since\": \"2026-09-04 02:10:00\"\n  },\n  {\n    \"node\": \"nid08\",\n    \"severity\": \"info\",\n    \"alert\": \"node_drained\",\n    \"detail\": \"scheduled hardware maintenance\",\n    \"since\": \"2026-09-05 06:00:00\"\n  }\n]",
+          "result_chars": 352,
+          "guard_refused": false
+        },
+        {
+          "turn": 4,
+          "name": "search_docs",
+          "args": {
+            "keyword": "TIMEOUT"
+          },
+          "result": "### runbook-thermal-throttling.md\n# Runbook: node running hot / thermal throttling\n\n**Symptom.** Jobs on a node take far longer than the same job took last week,\nand often hit their walltime and end in `TIMEOUT` rather than failing outright.\nUsers report \"the cluster is slow\" without an error message.\n\n**Cause.** Above **85 C** the GPUs clock down to protect themselves. Throughput\ndrops by 30-50% but nothing crashes, so nothing shows up in the job's own logs.\nThe usual reason is a blocked air intake, a failed fan, or a rack-level cooling\nfault affecting one or two nodes.\n\n**Diagnosis.**\n\n1. Pull the live telemetry for the node: temperature, power draw, `throttling`.\n2. Check the accounting database for jobs that landed on that node in the last\n   few days. A cluster of `TIMEOUT` states on one node, while the same users'\n   jobs complete normally elsewhere, confirms it.\n\n**Action.**\n\n- Drain the node so no new work lands on it: `scontrol update NodeName=<node> State=DRAIN Reason=\"thermal\"`.\n- Raise a hardware ticket with the facilities team; include the temperature\n  history and the affected job ids.\n- Tell the affected users to resubmit. Time lost to a throttled node is\n  refunded against the project allocation -- see the fair-share policy.\n",
+          "result_chars": 1261,
+          "guard_refused": false
+        },
+        {
+          "turn": 5,
+          "name": "get_node_metrics",
+          "args": {
+            "node": "nid02"
+          },
+          "result": "{\n  \"node\": \"nid02\",\n  \"partition\": \"gpu\",\n  \"state\": \"alloc\",\n  \"temp_c\": 91.8,\n  \"power_w\": 612,\n  \"gpu_util_pct\": 98,\n  \"fan_rpm\": 5531,\n  \"throttling\": true,\n  \"sampled_at\": \"2026-09-06 12:00:00\"\n}",
+          "result_chars": 201,
+          "guard_refused": false
+        }
+      ],
+      "tokens": {
+        "sent": 0,
+        "received": 1563,
+        "cached": 0
+      },
+      "wall_s": 23.69,
+      "stopped": "answered",
+      "error": "",
+      "check": {
+        "passed": false,
+        "failures": [
+          "answer contains none of ['96']"
+        ],
+        "hard_fail": []
+      }
+    },
+    {
+      "setup": "cc-glm",
+      "task": "job-4831",
+      "rep": 0,
+      "model": "zai-org/GLM-5.2",
+      "answer": "Here's what happened and what you should do.\n\n## Job 4831 \u2014 what happened\n\n| Field | Value |\n|---|---|\n| User / project | `mrossi` / `s1023` |\n| Partition | `gpu` (4 nodes: nid02\u201305) |\n| State | **TIMEOUT** (exit code 0 \u2014 nothing crashed) |\n| Submitted | 2026-09-05 08:12 |\n| Started | 2026-09-05 08:16 |\n| Ended | 2026-09-06 08:16 |\n| Walltime | 24h exactly |\n| Node-hours charged | 96.0 |\n\nThe job ran for exactly its 24-hour walltime and was killed by the scheduler \u2014 it didn't fail on its own (exit code 0). The most likely root cause is **thermal throttling on nid02**, which is one of the four nodes this job ran on:\n\n- Live telemetry shows nid02 at **91.8 \u00b0C**, drawing 612 W, GPU utilization 98%, fans at 5531 RPM, and **`throttling: true`** right now.\n- There's an active `thermal_throttling` alert on nid02 in effect **since 2026-09-04 02:10** \u2014 i.e. for ~34 hours, covering the entire run of job 4831.\n- The thermal-throttling runbook is an exact match for your symptoms: above 85 \u00b0C the GPUs clock down 30\u201350%, nothing crashes, and jobs run \"slow\" until they hit walltime and end in `TIMEOUT` rather than failing outright. That's consistent with an exit code of 0 and a clean 24-hour run.\n\nSo: the job was most likely doing legitimate work, just ~30\u201350% slower than expected because the GPUs were clocked down for the whole run, and it ran out of walltime before finishing.\n\n## What you should do\n\n1. **Tell `mrossi` to resubmit.** The job didn't fail due to a bug \u2014 it just needs more walltime on healthy nodes.\n2. **Drain nid02** so no new work lands on it:\n   ```\n   scontrol update NodeName=nid02 State=DRAIN Reason=\"thermal\"\n   ```\n3. **Raise a hardware ticket** with the facilities team. Include the temperature history (91.8 \u00b0C, throttling since 2026-09-04 02:10) and the affected job id (4831). The cause is likely a blocked air intake, a failed fan, or a rack-level cooling fault.\n4. **Refund the 96 node-hours** to project `s1023`. Per the thermal-throttling runbook, time lost to a throttled node is refunded against the project allocation \u2014 see the fair-share policy for the exact mechanism.\n\nA couple of things worth noting that are **not** the cause here:\n- The `node_drained` alert is on **nid08** (scheduled hardware maintenance since 2026-09-05 06:00), not on any of nid02\u201305 that your job used. Unrelated.\n- None of nid02\u201305 are drained right now, so after you drain nid02 the remaining three (nid03\u201305) are still available if `mrossi` wants to resubmit on fewer nodes.\n\nWant me to pull the fair-share policy doc so you have the refund procedure to hand, or check whether other recent jobs on nid02 also timed out (to strengthen the hardware ticket)?",
+      "turns": 6,
+      "calls": [
+        {
+          "turn": 2,
+          "name": "run_sql",
+          "args": {
+            "query": "SELECT job_id, username, project_id, partition, nodes, node_list, state, exit_code, submit_time, start_time, end_time, node_hours FROM jobs WHERE job_id = 4831"
+          },
+          "result": "[{\"job_id\": 4831, \"username\": \"mrossi\", \"project_id\": \"s1023\", \"partition\": \"gpu\", \"nodes\": 4, \"node_list\": \"nid[02-05]\", \"state\": \"TIMEOUT\", \"exit_code\": 0, \"submit_time\": \"2026-09-05 08:12:00\", \"start_time\": \"2026-09-05 08:16:00\", \"end_time\": \"2026-09-06 08:16:00\", \"node_hours\": 96.0}]",
+          "result_chars": 288,
+          "guard_refused": false
+        },
+        {
+          "turn": 3,
+          "name": "list_alerts",
+          "args": {},
+          "result": "[\n  {\n    \"node\": \"nid02\",\n    \"severity\": \"warning\",\n    \"alert\": \"thermal_throttling\",\n    \"detail\": \"91.8 C is above the 85 C throttle point\",\n    \"since\": \"2026-09-04 02:10:00\"\n  },\n  {\n    \"node\": \"nid08\",\n    \"severity\": \"info\",\n    \"alert\": \"node_drained\",\n    \"detail\": \"scheduled hardware maintenance\",\n    \"since\": \"2026-09-05 06:00:00\"\n  }\n]",
+          "result_chars": 352,
+          "guard_refused": false
+        },
+        {
+          "turn": 4,
+          "name": "get_node_metrics",
+          "args": {
+            "node": "nid02"
+          },
+          "result": "{\n  \"node\": \"nid02\",\n  \"partition\": \"gpu\",\n  \"state\": \"alloc\",\n  \"temp_c\": 91.8,\n  \"power_w\": 612,\n  \"gpu_util_pct\": 98,\n  \"fan_rpm\": 5531,\n  \"throttling\": true,\n  \"sampled_at\": \"2026-09-06 12:00:00\"\n}",
+          "result_chars": 201,
+          "guard_refused": false
+        },
+        {
+          "turn": 6,
+          "name": "search_docs",
+          "args": {
+            "keyword": "timeout refund"
+          },
+          "result": "Nothing matches 'timeout refund'. Available: ['policy-fair-share.md', 'policy-maintenance-windows.md', 'runbook-out-of-memory.md', 'runbook-thermal-throttling.md']",
+          "result_chars": 163,
+          "guard_refused": false
+        },
+        {
+          "turn": 7,
+          "name": "search_docs",
+          "args": {
+            "keyword": "thermal throttling"
+          },
+          "result": "### runbook-thermal-throttling.md\n# Runbook: node running hot / thermal throttling\n\n**Symptom.** Jobs on a node take far longer than the same job took last week,\nand often hit their walltime and end in `TIMEOUT` rather than failing outright.\nUsers report \"the cluster is slow\" without an error message.\n\n**Cause.** Above **85 C** the GPUs clock down to protect themselves. Throughput\ndrops by 30-50% but nothing crashes, so nothing shows up in the job's own logs.\nThe usual reason is a blocked air intake, a failed fan, or a rack-level cooling\nfault affecting one or two nodes.\n\n**Diagnosis.**\n\n1. Pull the live telemetry for the node: temperature, power draw, `throttling`.\n2. Check the accounting database for jobs that landed on that node in the last\n   few days. A cluster of `TIMEOUT` states on one node, while the same users'\n   jobs complete normally elsewhere, confirms it.\n\n**Action.**\n\n- Drain the node so no new work lands on it: `scontrol update NodeName=<node> State=DRAIN Reason=\"thermal\"`.\n- Raise a hardware ticket with the facilities team; include the temperature\n  history and the affected job ids.\n- Tell the affected users to resubmit. Time lost to a throttled node is\n  refunded against the project allocation -- see the fair-share policy.\n",
+          "result_chars": 1261,
+          "guard_refused": false
+        }
+      ],
+      "tokens": {
+        "sent": 0,
+        "received": 1505,
+        "cached": 0
+      },
+      "wall_s": 39.04,
+      "stopped": "answered",
+      "error": "",
+      "check": {
+        "passed": true,
+        "failures": [],
+        "hard_fail": []
+      }
+    }
+  ]
+}
