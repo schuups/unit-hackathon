@@ -1,0 +1,48 @@
+# Destination hosts the agent container is allowed to reach.
+#
+# One pattern per line, fnmatch syntax (`*` and `?` wildcards). Matched against
+# the host of every request -- including the host in a CONNECT, which is how
+# HTTPS goes through a proxy. Anything not listed here is refused with 403 and
+# logged. Blank lines and #-comments are ignored.
+#
+# A pattern must match the ENTIRE hostname. `theguardian.com` therefore does
+# *not* cover `www.theguardian.com` -- you need the wildcard form as well. This
+# is the most common surprise here, and the proxy log names the exact host it
+# refused, so read it there rather than guessing.
+#
+# Two ways to apply an edit:
+#   fast   cp this file to ~/agent-sandbox/allowlist (oc.sh bind-mounts that
+#          over the baked-in copy), then: podman restart agent-proxy
+#   baked  podman build -f Dockerfile.proxy -t agent-egress-proxy:1 .
+#          then: oc-proxy-down && oc
+
+# The inference endpoint. Without this, nothing works.
+api.inference.cscs.ch
+
+# opencode's model catalogue, fetched at startup. Blocking it is survivable --
+# the CSCS models are declared in the image config, not discovered -- but it
+# logs an error on every start.
+models.opencode.ai
+
+# Uncomment if you want the agent to be able to clone or fetch from GitHub.
+# Note this is also a plausible exfiltration route: a repo it can push to is a
+# repo it can write your source into.
+# github.com
+# codeload.github.com
+# objects.githubusercontent.com
+
+# opencode asks npm for the provider SDK on the first message. It does NOT need
+# the answer -- @ai-sdk/anthropic is compiled into the binary and it falls back
+# to that -- so this stays commented out. Uncomment only if you add a provider
+# whose SDK is genuinely not bundled. See "Pre-warming the provider SDK".
+# registry.npmjs.org
+
+# News sites, for the "can it reach the web?" demo. Both forms are needed: the
+# apex on its own line, the wildcard for www., amp., rss. and friends.
+theguardian.com
+*.theguardian.com
+
+# Uncomment to let the same demo reach CNN as well -- www.cnn.com, rss.cnn.com
+# and edition.cnn.com are all covered by the wildcard.
+# cnn.com
+# *.cnn.com
